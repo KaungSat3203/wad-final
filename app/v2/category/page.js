@@ -28,15 +28,20 @@ export default function Home() {
   ];
 
   const API_BASE = process.env.NEXT_PUBLIC_API_URL;
-  console.log(`${API_BASE}/category`);
+  
   async function fetchCategory() {
-    const data = await fetch(`${APIBASE}/category`);
-    const c = await data.json();
-    const c2 = c.map((category) => {
-      category.id = category._id;
-      return category;
-    });
-    setCategory(c2);
+    try {
+      const data = await fetch(`${API_BASE}/category`);
+      if (!data.ok) throw new Error(`HTTP error! status: ${data.status}`);
+      const c = await data.json();
+      const c2 = c.map((category) => {
+        category.id = category._id;
+        return category;
+      });
+      setCategory(c2);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
   }
 
   const [open, setOpen] = useState(false);
@@ -47,19 +52,22 @@ export default function Home() {
     fetchCategory();
   }, []);
 
-  function handleCategoryFormSubmit(data) {
+  async function handleCategoryFormSubmit(data) {
     if (editMode) {
-      // data.id = data._id
-      fetch(`${APIBASE}/category`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      }).then(() => {
-        reset({ name: '', order: '' })
-        fetchCategory()
-      });
+      try {
+        const response = await fetch(`${API_BASE}/category`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        reset({ name: '', order: '' });
+        await fetchCategory();
+      } catch (error) {
+        console.error('Error updating category:', error);
+      }
       return
     }
     fetch(`${APIBASE}/category`, {

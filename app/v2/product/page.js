@@ -10,40 +10,64 @@ export default function Home() {
   const [products, setProducts] = useState([]);
   const [category, setCategory] = useState([]);
 
+  useEffect(() => {
+    fetchProducts();
+    fetchCategory();
+  }, []);
+
   const startEdit = (id) => async () => {
     // TODO
   }
 
   async function fetchProducts() {
-    const data = await fetch(`${APIBASE}/product`);
-    const p = await data.json();
-    setProducts(p);
+    try {
+      const data = await fetch(`${APIBASE}/product`);
+      if (!data.ok) throw new Error(`HTTP error! status: ${data.status}`);
+      const p = await data.json();
+      setProducts(p);
+    } catch (error) {
+      console.error('Error fetching products:', error);
+    }
   }
 
   async function fetchCategory() {
-    const data = await fetch(`${APIBASE}/category`);
-    const c = await data.json();
-    setCategory(c);
+    try {
+      const data = await fetch(`${APIBASE}/category`);
+      if (!data.ok) throw new Error(`HTTP error! status: ${data.status}`);
+      const c = await data.json();
+      setCategory(c);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
   }
 
-  const createProduct = (data) => {
-    fetch(`${APIBASE}/product`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).then(() => fetchProducts());
+    const createProduct = async (data) => {
+    try {
+      const response = await fetch(`${APIBASE}/product`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error creating product:', error);
+    }
   };
 
-  const deleteById = (id) => async () => {
-    if (!confirm("Are you sure?")) return;
-
-    await fetch(`${APIBASE}/product/${id}`, {
-      method: "DELETE",
-    });
-    fetchProducts();
-  }
+    const handleDelete = (id) => async () => {
+    try {
+      const response = await fetch(`${APIBASE}/product/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+      await fetchProducts();
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
+  };
 
   useEffect(() => {
     fetchCategory();
